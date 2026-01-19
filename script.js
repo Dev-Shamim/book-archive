@@ -568,8 +568,23 @@ function renderPayments() {
  * Renders the table in the Admin dashboard.
  */
 function renderAdminTable(books) {
-    grids.adminTable.innerHTML = books.map(book => `
-        <tr class="hover:bg-slate-50 transition border-b border-slate-50 last:border-0 group">
+    grids.adminTable.innerHTML = ''; // Clear current rows
+    
+    if (books.length === 0) {
+        document.getElementById('emptyState').classList.remove('hidden');
+        return;
+    } else {
+        document.getElementById('emptyState').classList.add('hidden');
+    }
+
+    books.forEach(book => {
+        // Create table row element
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition border-b border-slate-50 last:border-0 group';
+        tr.dataset.id = book.id;
+
+        // Populate row content
+        tr.innerHTML = `
             <td class="p-4">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-16 bg-slate-200 rounded overflow-hidden flex-shrink-0">
@@ -584,11 +599,18 @@ function renderAdminTable(books) {
             <td class="p-4 text-slate-600">${book.author}</td>
             <td class="p-4"><span class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-bold">${book.genre || 'N/A'}</span></td>
             <td class="p-4 text-right">
-                <button onclick="editBook(${book.id})" class="bg-amber-100 text-amber-600 w-8 h-8 rounded-full hover:bg-amber-200 transition mr-2"><i class="fa-solid fa-pen"></i></button>
-                <button onclick="deleteBook(${book.id})" class="bg-red-100 text-red-600 w-8 h-8 rounded-full hover:bg-red-200 transition"><i class="fa-solid fa-trash"></i></button>
+                <button class="edit-btn bg-amber-100 text-amber-600 w-8 h-8 rounded-full hover:bg-amber-200 transition mr-2" title="Edit Book">
+                    <i class="fa-solid fa-pen pointer-events-none"></i>
+                </button>
+                <button class="delete-btn bg-red-100 text-red-600 w-8 h-8 rounded-full hover:bg-red-200 transition" title="Delete Book">
+                    <i class="fa-solid fa-trash pointer-events-none"></i>
+                </button>
             </td>
-        </tr>
-    `).join('');
+        `;
+        
+        // Append the newly created row to the table body
+        grids.adminTable.appendChild(tr);
+    });
 }
 
 // --- 9. EVENT LISTENERS ---
@@ -600,6 +622,35 @@ function initEventListeners() {
     adminForm.toggleBtn.addEventListener('click', () => { adminForm.container.classList.toggle('hidden'); resetForm(); });
     adminForm.cancelBtn.addEventListener('click', () => { adminForm.container.classList.add('hidden'); resetForm(); });
     adminForm.saveBtn.addEventListener('click', handleSaveBook);
+
+    // Event Bubbling for Admin Table (Edit and Delete)
+    grids.adminTable.addEventListener('click', (e) => {
+        const tr = e.target.closest('tr');
+        if (!tr) return;
+        
+        const id = parseInt(tr.dataset.id);
+
+        if (e.target.closest('.delete-btn')) {
+            if (confirm('Are you sure you want to delete this book?')) {
+                // Step 1: Remove from DOM directly for immediate feedback
+                tr.remove();
+                
+                // Step 2: Update Local Storage
+                const books = getBooks().filter(b => b.id !== id);
+                localStorage.setItem('books', JSON.stringify(books));
+                
+                // Step 3: Check if table is now empty
+                if (books.length === 0) {
+                    document.getElementById('emptyState').classList.remove('hidden');
+                }
+                
+                // Refresh other views (Home, Browse etc)
+                refreshAllViews();
+            }
+        } else if (e.target.closest('.edit-btn')) {
+            editBook(id);
+        }
+    });
 
     // Global Search Input
     const searchInput = document.getElementById('globalSearch');
@@ -701,7 +752,7 @@ function handleSaveBook() {
  * Deletes a book by ID.
  * @param {number} id - The ID of the book to delete.
  */
-window.deleteBook = function(id) {
+function deleteBook(id) {
     if(confirm('Delete this book?')) {
         const books = getBooks().filter(b => b.id !== id);
         saveBooks(books);
@@ -713,7 +764,7 @@ window.deleteBook = function(id) {
  * Prepares the form for editing an existing book.
  * @param {number} id - The ID of the book to edit.
  */
-window.editBook = function(id) {
+function editBook(id) {
     const book = getBooks().find(b => b.id === id);
     if(!book) return;
     
