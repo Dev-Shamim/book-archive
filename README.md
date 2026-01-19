@@ -47,7 +47,7 @@ Word Treasury is a comprehensive, visually stunning, and fully functional **Book
 ## 📂 Directory Structure
 
 ```text
-Libro-App/
+Word Treasury-App/
 │
 ├── index.html              # Main entry point containing all SPA views and modals
 ├── style.css               # Custom CSS for scrollbars, animations, and Tailwind config
