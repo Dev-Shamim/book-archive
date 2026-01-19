@@ -1,0 +1,94 @@
+/* 
+   -------------------------------------------------------------------------
+   WORD TREASURY - CUSTOM STYLESHEET
+   -------------------------------------------------------------------------
+   This file handles custom animations, scrollbar styling, and specific 
+   component overrides that are not easily handled by Tailwind CSS classes alone.
+*/
+
+/* 
+   1. IMPORTS
+   Load Google Fonts for 'Inter' (Sans) and 'Playfair Display' (Serif).
+   These are used as the primary fonts throughout the application.
+*/
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700&display=swap');
+
+/* 
+   2. GLOBAL SETTINGS 
+   Enable smooth scrolling for the entire document, providing a nicer 
+   experience when jumping between anchor links.
+*/
+html {
+    scroll-behavior: smooth;
+}
+
+/* 
+   3. ANIMATIONS 
+   Custom keyframes for entry animations.
+   - fade-in: Simple opacity fade from bottom to top (small distance).
+   - fade-up: Similar to fade-in but with a slightly larger travel distance 
+              and longer duration, used for cards and modals.
+*/
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Utility classes to apply the animations */
+.fade-in {
+    animation: fade-in 0.5s ease-out forwards;
+}
+
+.animate-fade-up {
+    animation: fade-up 0.6s ease-out forwards;
+}
+
+/* 
+   4. CUSTOM SCROLLBAR 
+   Styled scrollbars for Webkit browsers (Chrome, Safari, Edge).
+   Replaces the default OS scrollbar with a cleaner, slimmer design.
+*/
+::-webkit-scrollbar {
+    width: 8px; /* Width of the vertical scrollbar */
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9; /* Light slate background for the track */
+}
+ 
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1; /* Slate color for the draggable thumb */
+    border-radius: 4px;  /* Rounded edges */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8; /* Darker slate on hover */
+}
+
+/* 
+   5. UTILITIES 
+   Helper classes for specific visual effects.
+*/
+
+/* 
+   Backdrop Blur Support 
+   Ensures the 'frosted glass' effect works consistently.
+   Used in Modals and the Hero Banner overlay.
+*/
+.backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+/* 
+   Hover Effects 
+   Simple lift effect for category cards on the home page.
+*/
+.category-card:hover {
+    transform: translateY(-5px);
+}

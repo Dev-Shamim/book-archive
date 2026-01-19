@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- 
+    HEAD SECTION
+    Contains metadata, title, and external resource links.
+    - Tailwind CSS: For utility-first styling.
+    - FontAwesome: For icons.
+    - Google Fonts: 'Inter' (sans-serif) and 'Playfair Display' (serif).
+    - Custom Tailwind Config: Defines the color palette and font families used throughout the app.
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Treasury | Modern Book Archive</title>
+    
+    <!-- Design System: Tailwind CSS (Loaded via CDN for simplicity in this standalone prototype) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Icons: FontAwesome 6.4.0 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Config for Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb', // Main brand color (Blue 600)
+                        secondary: '#475569', // Secondary text/elements (Slate 600)
+                        accent: '#f59e0b', // Highlights/Warnings (Amber 500)
+                        background: '#f8fafc', // Global page background (Slate 50)
+                        surface: '#ffffff', // Card/Container background (White)
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'], // Body text
+                        serif: ['Playfair Display', 'serif'], // Headings
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Local Stylesheet for custom animations and overrides -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<!-- 
+    BODY
+    - Sets global font and background color.
+    - Uses Flexbox to ensure the footer stays at the bottom (min-h-screen).
+-->
+<body class="bg-background text-slate-800 font-sans antialiased flex flex-col min-h-screen">
+
+    <!-- 
+        HEADER / NAVIGATION
+        - Sticky top bar containing Logo, Desktop Navigation, and User Actions (Search, Wishlist, Profile).
+        - Responsive design: Hides desktop nav on smaller screens (mobile menu logic would go here if implemented).
+    -->
+    <header class="bg-surface shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 h-16 flex items-center justify-between">
+            <!-- Logo: Clicking returns to Home view -->
+            <div class="flex items-center gap-2 cursor-pointer" onclick="navigateTo('home')">
+                <i class="fa-solid fa-book-open text-primary text-2xl"></i>
+                <span class="font-serif text-2xl font-bold text-slate-800">Word Treasury</span>
+            </div>
+
+            <!-- Desktop Nav: Main links to different application sections -->
+            <nav class="hidden lg:flex items-center gap-6">
+                <a href="#" onclick="navigateTo('home')" class="nav-link text-slate-600 hover:text-primary font-medium transition">Home</a>
+                <a href="#" onclick="navigateTo('browse')" class="nav-link text-slate-600 hover:text-primary font-medium transition">Browse</a>
+                <a href="#" onclick="navigateTo('authors')" class="nav-link text-slate-600 hover:text-primary font-medium transition">Authors</a>
+                <a href="#" onclick="navigateTo('collections')" class="nav-link text-slate-600 hover:text-primary font-medium transition">Collections</a>
+                <a href="#" onclick="navigateTo('admin')" class="nav-link text-slate-600 hover:text-primary font-medium transition">Admin</a>
+            </nav>
+
+            <!-- Search & Actions: Search bar, Wishlist icon, and Profile button -->
+            <div class="flex items-center gap-3">
+                <!-- Simple Search: Input field with icon -->
+                <div class="relative hidden sm:block group">
+                    <input type="text" id="globalSearch" placeholder="Search by title, author, ISBN..." 
+                        class="pl-10 pr-10 py-2 rounded-full bg-slate-100 border-none focus:ring-2 focus:ring-primary focus:outline-none w-48 lg:w-64 text-sm transition-all">
+                    <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    
+                    <!-- Advanced Search Trigger: Opens a modal for more specific filtering -->
+                    <button onclick="toggleAdvancedSearch()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary" title="Advanced Search">
+                        <i class="fa-solid fa-sliders"></i>
+                    </button>
+                </div>
+                
+                <!-- Wishlist Toggle (Visual only in this prototype) -->
+                <button class="relative p-2 text-slate-600 hover:text-primary transition" title="Wishlist" onclick="navigateTo('profile')">
+                    <i class="fa-regular fa-heart text-xl"></i>
+                    <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                </button>
+                
+                <!-- Profile Trigger: Navigates to the User Profile section -->
+                <button onclick="navigateTo('profile')" class="flex items-center gap-2 bg-slate-100 text-slate-700 px-3 py-2 rounded-full hover:bg-slate-200 transition">
+                    <div class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <span class="hidden md:inline text-sm font-medium">My Account</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 
+        MAIN CONTENT AREA
+        This is where different 'Views' (Home, Browse, Profile, etc.) are toggled.
+        Only one section is visible at a time, controlled by JavaScript (navigateTo function).
+    -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+        
+        <!-- 
+            SECTION: HOME
+            The landing page view. Contains:
+            - Hero Banner: Featured book highlight.
+            - Categories: Quick links to genres.
+            - New Arrivals: Preview of the latest books.
+        -->
+        <section id="home-section" class="fade-in">
+            <!-- Hero Banner -->
+            <div class="relative rounded-3xl mb-12 text-white shadow-2xl overflow-hidden min-h-[500px] flex items-center">
+                <div class="absolute inset-0 z-0">
+                    <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" 
+                         alt="Library Background" 
+                         class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/80 to-transparent"></div>
+                </div>
+                
+                <div class="container mx-auto px-8 md:px-16 py-12 relative z-10 flex flex-col md:flex-row items-center gap-8">
+                    <div class="flex-1 space-y-6">
+                        <span class="bg-blue-500/30 backdrop-blur-md text-blue-200 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-blue-500/30 inline-block">Featured Choice</span>
+                        <h1 class="font-serif text-4xl md:text-6xl font-bold leading-tight">War and Peace</h1>
+                        <p class="text-slate-300 text-lg max-w-xl"> Exploring themes of love, family, history, and philosophy through personal struggles, societal upheaval, and the contrast between the chaos of war and the search for peace and meaning in everyday life.</p>
+                        <div class="flex gap-4 pt-4">
+                            <button onclick="navigateTo('browse')" class="bg-primary hover:bg-blue-600 text-white px-8 py-3 rounded-full font-semibold transition shadow-lg shadow-blue-500/50">Start Reading</button>
+                            <button onclick="openModal(1705350000001)" class="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-8 py-3 rounded-full font-semibold transition border border-white/20">Learn More</button>
+                        </div>
+                    </div>
+                    <div class="hidden md:flex w-1/3 justify-center">
+                        <img src="https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1327869991i/1613363.jpg" alt="Book Cover" class="rounded shadow-2xl transform rotate-3 hover:rotate-0 transition duration-500 cursor-pointer object-cover h-[380px] w-[260px] border-4 border-white/10">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories Grid -->
+            <h2 class="font-serif text-2xl font-bold mb-6 flex items-center gap-3">
+                <span class="w-1 h-8 bg-accent rounded-full"></span> 
+                Browse by Genre
+            </h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+                <div class="category-card group bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer text-center border border-slate-100" onclick="filterByGenre('Sci-Fi')">
+                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-rocket text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-slate-800">Sci-Fi</h3>
+                </div>
+                <div class="category-card group bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer text-center border border-slate-100" onclick="filterByGenre('Fantasy')">
+                    <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-dragon text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-slate-800">Fantasy</h3>
+                </div>
+                <div class="category-card group bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer text-center border border-slate-100" onclick="filterByGenre('History')">
+                    <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-leaf text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-slate-800">History</h3>
+                </div>
+                <div class="category-card group bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer text-center border border-slate-100" onclick="filterByGenre('Romance')">
+                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-heart text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-slate-800">Romance</h3>
+                </div>
+            </div>
+
+            <!-- New Arrivals Grid -->
+            <div class="flex justify-between items-end mb-6">
+                <h2 class="font-serif text-2xl font-bold flex items-center gap-3">
+                    <span class="w-1 h-8 bg-primary rounded-full"></span> 
+                    New Arrivals
+                </h2>
+                <button onclick="navigateTo('browse')" class="text-primary font-medium hover:underline">View All</button>
+            </div>
+            <div id="home-book-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                <!-- Book Cards Injected Here by JavaScript -->
+            </div>
+        </section>
+
+        <!-- 
+            SECTION: BROWSE
+            The main catalog view. Contains:
+            - Sidebar Filters: Genre, Price, Rating.
+            - Sort Options: Newest, Price Low-High.
+            - Book Grid: Displays all books matching filters.
+        -->
+        <section id="browse-section" class="hidden fade-in">
+            <div class="flex flex-col md:flex-row gap-8">
+                <!-- Sidebar Filters -->
+                <aside class="w-full md:w-64 space-y-8 bg-white p-6 rounded-xl border border-slate-100 h-fit sticky top-24">
+                    <!-- Categories -->
+                    <div>
+                        <h3 class="font-bold text-slate-800 mb-4 text-lg border-b border-slate-100 pb-2">Category</h3>
+                        <div class="space-y-3" id="categoryFilters">
+                            <!-- Checkboxes populated here or hardcoded -->
+                            <label class="flex items-center gap-3 text-slate-600 cursor-pointer hover:text-primary transition">
+                                <input type="checkbox" value="Fantasy" class="w-4 h-4 rounded text-primary focus:ring-primary border-slate-300"> Fantasy
+                            </label>
+                            <label class="flex items-center gap-3 text-slate-600 cursor-pointer hover:text-primary transition">
+                                <input type="checkbox" value="Sci-Fi" class="w-4 h-4 rounded text-primary focus:ring-primary border-slate-300"> Sci-Fi
+                            </label>
+                            <label class="flex items-center gap-3 text-slate-600 cursor-pointer hover:text-primary transition">
+                                <input type="checkbox" value="Non-Fiction" class="w-4 h-4 rounded text-primary focus:ring-primary border-slate-300"> Non-Fiction
+                            </label>
+                            <label class="flex items-center gap-3 text-slate-600 cursor-pointer hover:text-primary transition">
+                                <input type="checkbox" value="Psychology" class="w-4 h-4 rounded text-primary focus:ring-primary border-slate-300"> Psychology
+                            </label>
+                             <label class="flex items-center gap-3 text-slate-600 cursor-pointer hover:text-primary transition">
+                                <input type="checkbox" value="Classic" class="w-4 h-4 rounded text-primary focus:ring-primary border-slate-300"> Classic
+                            </label>
+                            <label class="flex items-center gap-3 text-slate-600 cursor-pointer hover:text-primary transition">
+                                <input type="checkbox" value="History" class="w-4 h-4 rounded text-primary focus:ring-primary border-slate-300"> History
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Price Range Slider -->
+                    <div>
+                         <h3 class="font-bold text-slate-800 mb-4 text-lg border-b border-slate-100 pb-2">Price Range</h3>
+                         <div class="px-1">
+                             <input type="range" id="priceRange" min="0" max="100" value="100" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary">
+                             <div class="flex justify-between text-sm text-slate-500 mt-2 font-medium">
+                                 <span>$0</span>
+                                 <span id="priceValue" class="text-primary">$100</span>
+                             </div>
+                         </div>
+                    </div>
+
+                    <!-- Rating Filter -->
+                    <div>
+                        <h3 class="font-bold text-slate-800 mb-4 text-lg border-b border-slate-100 pb-2">Rating</h3>
+                        <div class="space-y-2" id="ratingFilters">
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="radio" name="rating" value="4" class="w-4 h-4 text-primary focus:ring-primary border-slate-300"> 
+                                <span class="flex text-amber-400 text-sm group-hover:opacity-80 transition">
+                                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star text-slate-300"></i>
+                                </span>
+                                <span class="text-xs text-slate-400">& Up</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="radio" name="rating" value="3" class="w-4 h-4 text-primary focus:ring-primary border-slate-300"> 
+                                <span class="flex text-amber-400 text-sm group-hover:opacity-80 transition">
+                                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star text-slate-300"></i><i class="fa-regular fa-star text-slate-300"></i>
+                                </span>
+                                <span class="text-xs text-slate-400">& Up</span>
+                            </label>
+                             <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="radio" name="rating" value="0" checked class="w-4 h-4 text-primary focus:ring-primary border-slate-300"> 
+                                <span class="text-sm text-slate-600">Any Rating</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Reset Filters Button -->
+                    <button onclick="clearFilters()" class="w-full py-2 text-sm text-slate-500 border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-red-500 transition">
+                        Reset Filters
+                    </button>
+                </aside>
+                
+                <!-- Content Area -->
+                <div class="flex-1">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="font-serif text-3xl font-bold">Catalog</h2>
+                        <select class="border-slate-200 rounded-lg text-sm text-slate-600 focus:ring-primary focus:border-primary">
+                            <option value="Newest">Sort by: Newest</option>
+                            <option value="Price">Sort by: Price (Low to High)</option>
+                        </select>
+                    </div>
+                    <div id="browse-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        <!-- Cards injected via JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: AUTHORS DIRECTORY -->
+        <section id="authors-section" class="hidden fade-in">
+             <div class="text-center mb-12">
+                <h2 class="font-serif text-4xl font-bold text-slate-800 mb-4">Meet the Authors</h2>
+                <p class="text-slate-500 max-w-2xl mx-auto">Explore the brilliant minds behind our collection. Discover new favorites and revisit classic voices.</p>
+            </div>
+            <div id="authors-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
+                <!-- Author cards injected via JS -->
+            </div>
+        </section>
+
+        <!-- SECTION: FEATURED COLLECTIONS -->
+        <section id="collections-section" class="hidden fade-in">
+             <div class="text-center mb-12">
+                <h2 class="font-serif text-4xl font-bold text-slate-800 mb-4">Curated Collections</h2>
+                <p class="text-slate-500 max-w-2xl mx-auto">Handpicked lists to help you find your next great read.</p>
+            </div>
+            <div id="collections-grid" class="space-y-12">
+                <!-- Collection rows injected via JS -->
+            </div>
+        </section>
+
+        <!-- 
+            SECTION: PROFILE DASHBOARD
+            User account management view. Contains:
+            - Sidebar Menu: Navigation for Overview, Lists, Orders, Payments.
+            - Content Panels: Dynamic content based on selected tab.
+        -->
+        <section id="profile-section" class="hidden fade-in">
+            <div class="flex flex-col md:flex-row gap-8">
+                <!-- Sidebar Menu -->
+                <aside class="w-full md:w-72">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 text-2xl">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-lg">Alex Reader</h3>
+                                <p class="text-slate-500 text-sm">alex.reader@example.com</p>
+                            </div>
+                        </div>
+                        
+                        <nav class="space-y-2">
+                            <button onclick="switchProfileTab('overview')" class="profile-tab-btn w-full text-left px-4 py-3 rounded-lg hover:bg-slate-50 text-slate-600 hover:text-primary transition font-medium flex items-center gap-3 bg-slate-50 text-primary">
+                                <i class="fa-solid fa-gauge-high w-5"></i> Overview
+                            </button>
+                            <button onclick="switchProfileTab('lists')" class="profile-tab-btn w-full text-left px-4 py-3 rounded-lg hover:bg-slate-50 text-slate-600 hover:text-primary transition font-medium flex items-center gap-3">
+                                <i class="fa-solid fa-list w-5"></i> Reading Lists
+                            </button>
+                            <button onclick="switchProfileTab('orders')" class="profile-tab-btn w-full text-left px-4 py-3 rounded-lg hover:bg-slate-50 text-slate-600 hover:text-primary transition font-medium flex items-center gap-3">
+                                <i class="fa-solid fa-box w-5"></i> Order History
+                            </button>
+                            <button onclick="switchProfileTab('payments')" class="profile-tab-btn w-full text-left px-4 py-3 rounded-lg hover:bg-slate-50 text-slate-600 hover:text-primary transition font-medium flex items-center gap-3">
+                                <i class="fa-regular fa-credit-card w-5"></i> Payment Methods
+                            </button>
+                        </nav>
+                        
+                        <div class="mt-8 pt-6 border-t border-slate-100">
+                            <button class="w-full text-left px-4 py-2 text-red-500 hover:bg-red-50 rounded-lg transition font-medium flex items-center gap-3">
+                                <i class="fa-solid fa-right-from-bracket w-5"></i> Sign Out
+                            </button>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Content Area -->
+                <div class="flex-1">
+                    <!-- Tab: Overview -->
+                    <div id="profile-overview" class="profile-content">
+                        <h2 class="font-serif text-2xl font-bold text-slate-800 mb-6">Dashboard</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                                <div class="text-slate-500 text-sm mb-1">Books Read</div>
+                                <div class="text-3xl font-bold text-slate-800">12</div>
+                            </div>
+                            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                                <div class="text-slate-500 text-sm mb-1">Wishlist</div>
+                                <div class="text-3xl font-bold text-slate-800">45</div>
+                            </div>
+                            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                                <div class="text-slate-500 text-sm mb-1">Reviews</div>
+                                <div class="text-3xl font-bold text-slate-800">8</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Reading Lists -->
+                    <div id="profile-lists" class="profile-content hidden">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="font-serif text-2xl font-bold text-slate-800">Reading Lists</h2>
+                            <button class="text-sm bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Create List</button>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="bg-white p-4 rounded-xl border border-slate-100 flex items-center justify-between hover:shadow-md transition cursor-pointer">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-16 h-16 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 text-2xl">
+                                        <i class="fa-solid fa-sun"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-slate-800">Summer 2026 To-Read</h3>
+                                        <p class="text-slate-500 text-sm">5 books • Created 2 days ago</p>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-chevron-right text-slate-300"></i>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border border-slate-100 flex items-center justify-between hover:shadow-md transition cursor-pointer">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 text-2xl">
+                                        <i class="fa-solid fa-graduation-cap"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-slate-800">Tech & Productivity</h3>
+                                        <p class="text-slate-500 text-sm">12 books • Created 1 month ago</p>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-chevron-right text-slate-300"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Order History -->
+                    <div id="profile-orders" class="profile-content hidden">
+                        <h2 class="font-serif text-2xl font-bold text-slate-800 mb-6">Order History</h2>
+                        <div class="space-y-4" id="order-list"></div>
+                    </div>
+
+                    <!-- Tab: Payment Methods -->
+                    <div id="profile-payments" class="profile-content hidden">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="font-serif text-2xl font-bold text-slate-800">Payment Methods</h2>
+                            <button class="text-sm bg-slate-800 text-white px-4 py-2 rounded-lg hover:bg-slate-700 transition">Add New Card</button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="payment-list"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: SUPPORT / FAQ -->
+        <section id="support-section" class="hidden fade-in">
+             <div class="max-w-3xl mx-auto">
+                <div class="text-center mb-12">
+                    <span class="text-primary font-bold tracking-wider uppercase text-xs">Help Center</span>
+                    <h2 class="font-serif text-4xl font-bold text-slate-800 mt-2 mb-4">How can we help you?</h2>
+                    <p class="text-slate-500">Find answers to commonly asked questions or contact our support team.</p>
+                </div>
+                <!-- FAQ Content (Using HTML details/summary) -->
+                <div class="bg-white rounded-xl border border-slate-100 overflow-hidden mb-4">
+                     <details class="group">
+                        <summary class="flex justify-between items-center p-6 cursor-pointer font-medium text-slate-800 hover:bg-slate-50 transition list-none">
+                            <span>How do I return a book?</span>
+                            <span class="transition group-open:rotate-180"><i class="fa-solid fa-chevron-down text-slate-400"></i></span>
+                        </summary>
+                        <div class="px-6 pb-6 text-slate-600 leading-relaxed">
+                            You can return any physical book within 30 days of purchase. Go to your Order History, select the order, and click "Return Item".
+                        </div>
+                    </details>
+                </div>
+             </div>
+        </section>
+
+        <!-- 
+            SECTION: ADMIN DASHBOARD
+            Book Management interface for administrators.
+            - Table of existing books.
+            - Add/Edit form for books.
+        -->
+        <section id="admin-section" class="hidden fade-in">
+             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
+                <div class="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
+                    <div>
+                        <h2 class="font-serif text-2xl font-bold text-slate-800">Book Management</h2>
+                        <p class="text-slate-500 text-sm mt-1">Add, edit, or remove books from the archive.</p>
+                    </div>
+                    <button id="toggleFormBtn" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+                        <i class="fa-solid fa-plus mr-2"></i> Add New Book
+                    </button>
+                </div>
+                
+                <!-- Add/Edit Form (Initially hidden) -->
+                <div id="adminFormContainer" class="hidden mb-8 bg-slate-50 p-6 rounded-xl">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <input type="text" id="bookName" placeholder="Book Title" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary focus:outline-none">
+                        <input type="text" id="authorName" placeholder="Author Name" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary focus:outline-none">
+                        <input type="text" id="genre" placeholder="Genre" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary focus:outline-none">
+                        <input type="text" id="coverUrl" placeholder="Cover Image URL (Optional)" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary focus:outline-none">
+                    </div>
+                    <textarea id="description" placeholder="Description" rows="3" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary focus:outline-none mb-4"></textarea>
+                    
+                    <div class="flex gap-3">
+                        <button id="saveBookBtn" class="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition">Save Book</button>
+                        <button id="cancelBtn" class="bg-slate-200 text-slate-600 px-6 py-2 rounded-lg font-medium hover:bg-slate-300 transition">Cancel</button>
+                    </div>
+                </div>
+
+                <!-- Books Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="text-slate-500 border-b border-slate-100 text-sm uppercase tracking-wider">
+                                <th class="p-4 font-semibold">Book Info</th>
+                                <th class="p-4 font-semibold">Author</th>
+                                <th class="p-4 font-semibold">Genre</th>
+                                <th class="p-4 font-semibold text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminBookList" class="text-slate-700 divide-y divide-slate-50">
+                            <!-- Rows injected JS -->
+                        </tbody>
+                    </table>
+                    <div id="emptyState" class="hidden text-center py-12">
+                        <i class="fa-regular fa-folder-open text-4xl text-slate-300 mb-3"></i>
+                        <p class="text-slate-500">No books found in the archive.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 
+        FOOTER
+        Static footer with links to various parts of the app.
+    -->
+    <footer class="bg-white border-t border-slate-100 pt-16 pb-8 mt-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <i class="fa-solid fa-book-open text-primary text-xl"></i>
+                        <span class="font-serif text-xl font-bold text-slate-800">Word Treasury</span>
+                    </div>
+                    <p class="text-slate-500 text-sm leading-relaxed">
+                        Curating the world's best stories for the modern reader. Your digital sanctuary for literature.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-800 mb-4">Explore</h4>
+                    <ul class="space-y-2 text-sm text-slate-500">
+                        <li><a href="#" onclick="navigateTo('browse')" class="hover:text-primary transition">Browse All</a></li>
+                        <li><a href="#" onclick="navigateTo('authors')" class="hover:text-primary transition">Authors</a></li>
+                        <li><a href="#" onclick="navigateTo('collections')" class="hover:text-primary transition">Collections</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-800 mb-4">Support</h4>
+                    <ul class="space-y-2 text-sm text-slate-500">
+                        <li><a href="#" onclick="navigateTo('support')" class="hover:text-primary transition">Help Center</a></li>
+                        <li><a href="#" class="hover:text-primary transition">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-800 mb-4">Stay Connected</h4>
+                    <div class="flex gap-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-primary hover:text-white transition"><i class="fa-brands fa-twitter"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-primary hover:text-white transition"><i class="fa-brands fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-slate-100 pt-8 text-center text-slate-400 text-sm">
+                &copy; 2026 Word Treasury Archive. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- 
+        MODAL: ADVANCED SEARCH
+        Popup for filtering books with specific criteria.
+        Controlled by 'toggleAdvancedSearch()' in script.js.
+    -->
+    <div id="advancedSearchModal" class="fixed inset-0 z-[101] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="toggleAdvancedSearch()"></div>
+        <div class="relative bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6 animate-fade-up z-10">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="font-serif text-2xl font-bold text-slate-800">Advanced Search</h3>
+                <button onclick="toggleAdvancedSearch()" class="text-slate-400 hover:text-slate-800"><i class="fa-solid fa-times text-xl"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Keywords</label>
+                    <input type="text" id="advQuery" placeholder="Title, character, keyword..." class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Author</label>
+                        <input type="text" id="advAuthor" placeholder="e.g. Frank Herbert" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">ISBN</label>
+                        <input type="text" id="advIsbn" placeholder="e.g. 978-0123456789" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary focus:outline-none">
+                    </div>
+                </div>
+                 <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Genre</label>
+                        <select id="advGenre" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary focus:outline-none">
+                            <option value="">Any Genre</option>
+                            <option value="Sci-Fi">Sci-Fi</option>
+                            <option value="Fantasy">Fantasy</option>
+                            <option value="Non-Fiction">Non-Fiction</option>
+                            <option value="History">History</option>
+                            <option value="Romance">Romance</option>
+                        </select>
+                    </div>
+                    <div>
+                         <label class="block text-sm font-medium text-slate-700 mb-1">Published Year</label>
+                        <input type="number" id="advYear" placeholder="e.g. 2024" class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary focus:outline-none">
+                    </div>
+                </div>
+                <button onclick="performAdvancedSearch()" class="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition mt-4">
+                    Find Books
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 
+        MODAL: BOOK DETAILS
+        Displays full details for a selected book.
+        Content is dynamically populated by 'openModal(id)' in script.js.
+    -->
+    <div id="bookModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
+        <div class="relative bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden animate-fade-up z-10 flex flex-col max-h-[90vh]">
+            <div class="flex flex-col md:flex-row flex-grow overflow-hidden">
+                <!-- Cover Image -->
+                <div class="w-full md:w-1/3 bg-slate-100 relative group flex-shrink-0 min-h-[300px] md:min-h-full">
+                    <img id="modalCover" src="" alt="Book Cover" class="w-full h-full object-cover absolute inset-0">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+                        <div class="text-white">
+                            <p class="font-bold text-lg" id="modalPriceDisplay">$0.00</p>
+                            <p class="text-sm opacity-80" id="modalIsbn">ISBN: N/A</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Details -->
+                <div class="flex-1 flex flex-col bg-white overflow-hidden">
+                    <!-- Header -->
+                    <div class="p-8 pb-4 border-b border-slate-100 flex justify-between items-start">
+                        <div>
+                             <span id="modalGenre" class="bg-blue-100 text-primary text-xs font-bold px-2 py-1 rounded uppercase tracking-wide"></span>
+                             <h2 id="modalTitle" class="font-serif text-3xl font-bold text-slate-800 mt-2 mb-1 leading-tight"></h2>
+                             <p id="modalAuthor" class="text-slate-500 font-medium italic"></p>
+                        </div>
+                        <button onclick="closeModal()" class="text-slate-400 hover:text-red-500 transition"><i class="fa-solid fa-times text-xl"></i></button>
+                    </div>
+
+                    <!-- Scrollable Content -->
+                    <div class="p-8 pt-6 overflow-y-auto custom-scrollbar">
+                        <div class="flex items-center gap-1 text-accent text-sm mb-6">
+                            <div id="modalStars" class="flex gap-1"></div>
+                            <span class="text-slate-400 ml-2" id="modalRatingText">(0.0)</span>
+                        </div>
+
+                        <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wide mb-2">Synopsis</h3>
+                        <p id="modalDesc" class="text-slate-600 leading-relaxed mb-8"></p>
+
+                        <!-- User Reviews Section -->
+                        <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wide mb-4">User Reviews</h3>
+                        <div id="modalReviews" class="space-y-4">
+                            <!-- Injected JS -->
+                        </div>
+                    </div>
+
+                    <!-- Footer Actions -->
+                    <div class="p-4 border-t border-slate-100 bg-slate-50 flex gap-3">
+                         <button class="flex-1 bg-slate-900 text-white py-3 rounded-lg font-medium hover:bg-slate-800 transition">Add to Wishlist</button>
+                        <button class="flex-1 border border-slate-200 text-slate-700 py-3 rounded-lg font-medium hover:bg-white transition">Preview</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
