@@ -1,3 +1,13 @@
+# Assignment : 02
+
+### Name : Shamim Mian
+
+### Email: (shamimmian91@gmail.com)
+
+[ Live url](অ্যাসাইনমেন্টের লাইভ url লিংক দিন)
+
+
+
 # Word Treasury | Modern Book Archive
 
 Word Treasury is a comprehensive, visually stunning, and fully functional **Book Archive Application** built with modern web technologies. It serves as a digital library where users can discover, manage, and review books with an experience akin to professional platforms like Goodreads or Amazon Books.
